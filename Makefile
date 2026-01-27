@@ -1,7 +1,7 @@
 COMMAND_COLOR = \033[36m
 DESC_COLOR    = \033[32m
 CLEAR_COLOR   = \033[0m
-SERVICE_NAME  = minecraft
+SERVICE_NAME  = neoforgeserver
 
 .PHONY: help
 help: ## prints this message ## 

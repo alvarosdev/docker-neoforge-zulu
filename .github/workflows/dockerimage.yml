@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghcr.io/alvarosdev/zulu-fabricmc
+  IMAGE_NAME: ghcr.io/alvarosdev/docker-neoforge-zulu
 
 jobs:
   build:
@@ -36,27 +36,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📖 Read Fabric Version
-        id: fabric_version
+      - name: 📖 Read NeoForge Version
+        id: neoforge_version
         run: |
           # 1. Load defaults from file
-          if [ -f fabric_version.txt ]; then
-            source fabric_version.txt
+          if [ -f VERSION.txt ]; then
+            source VERSION.txt
           else
-            echo "::error::fabric_version.txt not found"
+            echo "::error::VERSION.txt not found"
             exit 1
           fi
 
-          # 2. Override if legacy branch
-          if [[ "${{ github.ref_name }}" == legacy/* ]]; then
-             echo "Detected legacy branch: ${{ github.ref_name }}"
-             MC_VERSION=${GITHUB_REF_NAME#legacy/}
-             echo "Overriding MC_VERSION to $MC_VERSION"
-          fi
-
-          # 3. Output variables
-          echo "loader=$LOADER" >> $GITHUB_OUTPUT
-          echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
+          # 2. Output variables
+          echo "version=$NFVERSION" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Extract Docker metadata
         id: meta
@@ -65,8 +57,7 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ steps.fabric_version.outputs.mc_version }}
-            type=raw,value=${{ steps.fabric_version.outputs.mc_version }}-${{ steps.fabric_version.outputs.loader }}
+            type=raw,value=${{ steps.neoforge_version.outputs.version }}
 
       - name: 📦 Build and push
         uses: docker/build-push-action@v6
@@ -77,6 +68,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            MCVERSION=${{ steps.fabric_version.outputs.mc_version }}
+            NFVERSION=${{ steps.neoforge_version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

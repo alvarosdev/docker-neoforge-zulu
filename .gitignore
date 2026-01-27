@@ -25,3 +25,4 @@ replay_pid*
 
 minecraft_server/**
 .fabric/**
+minecraft_data/**
