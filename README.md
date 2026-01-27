@@ -48,12 +48,9 @@ This is the easiest way to manage your server.
        restart: unless-stopped
        ports:
          - "25565:25565"
+         # If you need to map other ports, add them here
+         # - "25566:25566"
        volumes:
-         - ./neoforge/mods:/data/mods  # Place mods here
-         - ./neoforge/world:/data/world # World data
-         - ./neoforge/config:/data/config # Config files
-         # If you need full access to the files from the host, you can use the following:
-         # Avoid using this with the volumes above, could cause conflicts
          - ./neoforge:/data
        environment:
          - MEMORYSIZE=4G
@@ -71,20 +68,14 @@ This is the easiest way to manage your server.
 ### Option 2: Docker CLI
 If you prefer running a single command:
 
-```bash
+```
 docker run -d \
   --name neoforgeserver \
   -p 25565:25565 \
-  -v $(pwd)/neoforge/mods:/data/mods \
-  -v $(pwd)/neoforge/world:/data/world \
-  -v $(pwd)/neoforge/config:/data/config \
+  -v $(pwd)/neoforge:/data \
   -e MEMORYSIZE=4G \
   ghcr.io/alvarosdev/docker-neoforge-zulu:latest
 ```
-
----
-
-## 📦 Managing Mods & Data
 
 All your server data is stored in the local `neoforge/` directory which is mounted into the container.
 

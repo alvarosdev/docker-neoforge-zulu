@@ -5,6 +5,14 @@ on:
     branches:
       - "main"
       - "legacy/*"
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE.txt'
+      - 'assets/**'
+      - '.gitignore'
+      - 'docs/**'
+      - '.dockerignore'
+      - 'docker-compose.yml'
   workflow_dispatch:
 
 env:

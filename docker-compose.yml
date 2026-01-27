@@ -9,14 +9,13 @@ services:
     # restart: unless-stopped
     environment:
       MEMORYSIZE: "2G"
+      # Use `id -u` and `id -g` to get your user and group IDs
       PUID: ""
       PGID: ""
       # RCON settings for healthcheck (optional, set in server.properties)
       # RCON_PASSWORD: "minecraft"
     volumes:
-      - ./neoforge/mods:/data/mods:rw
-      - ./neoforge/world:/data/world:rw
-      - ./neoforge/config:/data/config:rw
+      - ./neoforge_data:/data:rw
     ports:
       - "25565:25565"
     stdin_open: true

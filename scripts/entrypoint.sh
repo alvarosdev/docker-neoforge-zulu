@@ -6,43 +6,44 @@ DOCKER_USER='minecraft'
 DOCKER_GROUP='minecraft'
 MEMORYSIZE=${MEMORYSIZE:-"2G"}
 # Aikar's flags optimized for G1GC (Standard high-performance Minecraft flags)
-JAVAFLAGS=${JAVAFLAGS:-"-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"}
+JAVAFLAGS=${JAVAFLAGS:-"--add-modules=jdk.incubator.vector -Dlog4j2.formatMsgNoLookups=true -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"}
 
 log() {
     echo "[Entrypoint] $1"
 }
 
-# User Initialization Logic
-if ! id "$DOCKER_USER" >/dev/null 2>&1; then
-    log "First start or missing user detected. Initializing..."
+# --- User/Group Initialization ---
+USER_ID=${PUID:-9001}
+GROUP_ID=${PGID:-9001}
 
-    USER_ID=${PUID:-9001}
-    GROUP_ID=${PGID:-9001}
-    
-    log "Setting up user with UID:$USER_ID / GID:$GROUP_ID"
-
-    # Handle Group
-    if getent group "$GROUP_ID" >/dev/null 2>&1; then
-        log "Group ID $GROUP_ID exists. Reusing..."
-        DOCKER_GROUP=$(getent group "$GROUP_ID" | cut -d: -f1)
-    else
-        addgroup -g "$GROUP_ID" "$DOCKER_GROUP"
-    fi
-
-    # Handle User
-    if ! id -u "$USER_ID" >/dev/null 2>&1; then
-        adduser -u "$USER_ID" -G "$DOCKER_GROUP" -s /bin/sh -D "$DOCKER_USER"
-    fi
-
-    log "Applying permissions..."
-    chown -R "$USER_ID:$GROUP_ID" /opt/minecraft
-    chown -R "$USER_ID:$GROUP_ID" /data
-    chmod -R ug+rwx /opt/minecraft
+# 1. Handle Group
+if getent group "$GROUP_ID" >/dev/null 2>&1; then
+    log "GID $GROUP_ID exists. Reusing..."
+    DOCKER_GROUP=$(getent group "$GROUP_ID" | cut -d: -f1)
+else
+    log "Creating group $DOCKER_GROUP with GID $GROUP_ID"
+    addgroup -g "$GROUP_ID" "$DOCKER_GROUP"
 fi
 
-export HOME=/home/$DOCKER_USER
+# 2. Handle User
+if id -u "$USER_ID" >/dev/null 2>&1; then
+    log "UID $USER_ID exists. Reusing..."
+    DOCKER_USER=$(getent passwd "$USER_ID" | cut -d: -f1)
+else
+    log "Creating user $DOCKER_USER with UID $USER_ID"
+    adduser -u "$USER_ID" -G "$DOCKER_GROUP" -s /bin/sh -D "$DOCKER_USER"
+fi
 
-# Library Symlinking
+# 3. Permissions
+# We skip recursive chown to avoid slow startups.
+# The user is responsible for volume permissions, or Docker handles it.
+# We ensure the process runs as the requested UID:GID below using gosu.
+log "Permissions: Assuming /data is owned by $USER_ID:$GROUP_ID"
+
+# Set HOME to /data to ensure config persistence (.minecraft folder etc)
+export HOME=/data
+
+# --- Library Symlinking ---
 # Ensure /data/libraries points to the container's internal libraries to support updates
 if [ -d "/data/libraries" ] && [ ! -L "/data/libraries" ]; then
     log "Found physical directory at /data/libraries. Moving to .bak..."
@@ -55,7 +56,13 @@ if [ ! -L "/data/libraries" ]; then
     ln -s /opt/minecraft/libraries /data/libraries
 fi
 
-# Find Arguments File
+# --- EULA Handling ---
+if [ ! -f "eula.txt" ]; then
+    log "Generating eula.txt..."
+    echo "eula=true" > eula.txt
+fi
+
+# --- Find Arguments File ---
 # Use 'head -n 1' to avoid multiple results breaking the script
 LAUNCH_ARGS=$(find /opt/minecraft/libraries -name "unix_args.txt" | head -n 1)
 
@@ -64,13 +71,14 @@ if [ -z "$LAUNCH_ARGS" ]; then
     exit 1
 fi
 
-log "Starting NeoForge..."
+log "Starting NeoForge as $DOCKER_USER($USER_ID):$DOCKER_GROUP($GROUP_ID)"
 log "Memory: $MEMORYSIZE"
 log "Flags: $JAVAFLAGS"
 log "Args File: $LAUNCH_ARGS"
 
-# Execute Java
-exec gosu "$DOCKER_USER:$DOCKER_GROUP" java \
+# --- Execute Java ---
+# Use numeric IDs for gosu to avoid name resolution caching issues
+exec gosu "$USER_ID:$GROUP_ID" java \
     -Xms"$MEMORYSIZE" \
     -Xmx"$MEMORYSIZE" \
     $JAVAFLAGS \
