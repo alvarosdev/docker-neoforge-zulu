@@ -1,12 +1,12 @@
 services:
   minecraft:
     container_name: "neoforgeserver"
-    # image: ghcr.io/alvarosdev/zulu-fabricmc:latest
+    image: ghcr.io/alvarosdev/docker-neoforge-zulu:latest
     # Uncomment below to build locally instead of using the image
-    build:
-      dockerfile: ./Dockerfile
-      context: ./
-    restart: unless-stopped
+    # build:
+    #   dockerfile: ./Dockerfile
+    #   context: ./
+    # restart: unless-stopped
     environment:
       MEMORYSIZE: "2G"
       PUID: ""

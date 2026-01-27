@@ -1,9 +1,14 @@
 <center>
-<img src="assets/logo.png" align="center" width="300" />
+<img src="assets/logo.png" align="center" />
 </center>
 
 > [!NOTE]
-> **EPIC DISCLAIMER**: Yes, the logo was created using AI. I don't give a shit.
+> **EPIC DISCLAIMER**: Yes, the logo was created using AI. Honestly, I really don't care. Billionaire corporations and recently AI Bros (not you, obviously) have been scraping our code and art without asking, so, imho, using it for an open source repo is not a big deal.
+> Got a better idea for the logo? Send a PR :3
+
+> [!WARNING]
+> **Work in Progress**: This image is currently running stable on my personal server, but it hasn't been extensively tested with all mod combinations.
+> Please contact the original mod authors for mod-specific support. Don't ask me for help with mods. I'm not a modder.
 
 # NeoForge Server on Zulu OpenJDK
 
@@ -23,6 +28,9 @@ Unlike other images that download the latest version on every startup, this imag
 - **Performance**: Using Alpine Linux + Zulu OpenJDK provides a very slim and fast Java environment.
 - **Stability**: By pinning versions in the image build process (instead of a startup script), we guarantee that the server environment is identical across restarts until you explicitly decide to update the image.
 - **Simplicity**: No complex startup flags to configure versions; just pull and run.
+- **Multi-Architecture**: Supports both AMD64 and ARM64 architectures. (actually tested on ubuntu server 24.04 over oracle cloud and proxmox VMs)
+- **Podman Support**: Verified on my M1 Mac. It didn't explode, so I'm officially awarding it the "Works on My Machine" certification. If it breaks for you, you are now the lead debugger. Congratulations!
+- **Benchmarks**: ¯\_(ツ)_/¯ I don't know... it just works.
 
 ---
 
@@ -44,9 +52,14 @@ This is the easiest way to manage your server.
          - ./neoforge/mods:/data/mods  # Place mods here
          - ./neoforge/world:/data/world # World data
          - ./neoforge/config:/data/config # Config files
+         # If you need full access to the files from the host, you can use the following:
+         # Avoid using this with the volumes above, could cause conflicts
+         - ./neoforge:/data
        environment:
          - MEMORYSIZE=4G
          - TZ=America/Santiago
+         - PUID=
+         - GUID=
    ```
 
 2. Start the server:
