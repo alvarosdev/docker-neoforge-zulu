@@ -1,5 +1,5 @@
 <center>
-<img src="assets/logo_margins.png" align="center" width="300" />
+<img src="assets/logo.png" align="center" width="300" />
 </center>
 
 > [!NOTE]
