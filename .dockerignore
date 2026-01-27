@@ -31,4 +31,6 @@ libraries/
 !docker-compose.yml
 
 # Local development
-minecraft_server/
+minecraft_server/*
+minecraft_data/*
+assets/*

@@ -1,20 +1,22 @@
 services:
   minecraft:
-    container_name: "fabricserver"
-    image: ghcr.io/alvarosdev/zulu-fabricmc:latest
+    container_name: "neoforgeserver"
+    image: ghcr.io/alvarosdev/docker-neoforge-zulu:latest
     # Uncomment below to build locally instead of using the image
     # build:
     #   dockerfile: ./Dockerfile
     #   context: ./
-    restart: unless-stopped
+    # restart: unless-stopped
     environment:
-      MEMORYSIZE: "5G"
+      MEMORYSIZE: "2G"
       PUID: ""
       PGID: ""
       # RCON settings for healthcheck (optional, set in server.properties)
       # RCON_PASSWORD: "minecraft"
     volumes:
-      - ./minecraft_data:/data:rw
+      - ./neoforge/mods:/data/mods:rw
+      - ./neoforge/world:/data/world:rw
+      - ./neoforge/config:/data/config:rw
     ports:
       - "25565:25565"
     stdin_open: true
