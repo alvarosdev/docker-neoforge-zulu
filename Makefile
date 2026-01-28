@@ -1,7 +1,8 @@
 COMMAND_COLOR = \033[36m
 DESC_COLOR    = \033[32m
 CLEAR_COLOR   = \033[0m
-SERVICE_NAME  = neoforgeserver
+SERVICE_NAME  = minecraft
+CONTAINER_NAME = neoforgeserver
 
 .PHONY: help
 help: ## prints this message ## 
@@ -29,7 +30,7 @@ down: ## 👎 Remove containers and network ## (Keep volumes)
 	@docker-compose down
 
 .PHONY: build
-build: ## �️ Rebuilds the image locally ## (Using Dockerfile) 
+build: ## ️ Rebuilds the image locally ## (Using Dockerfile) 
 	@echo "🛠️ Rebuilding image..."
 	@docker-compose build --no-cache
 	@$(MAKE) up
@@ -37,7 +38,7 @@ build: ## �️ Rebuilds the image locally ## (Using Dockerfile)
 
 .PHONY: restart
 restart: ## 🔃 Restarts the container ## (Quick reload)
-	@echo "� Restarting..."
+	@echo " Restarting..."
 	@docker-compose restart
 	@$(MAKE) logs
 
@@ -53,17 +54,17 @@ logs: ## 🧻 Follow logs ##
 	@docker-compose logs --tail 50 -f $(SERVICE_NAME)
 
 .PHONY: attach
-attach: ## � Attach to console ## (Ctrl+P+Q to detach!) 
+attach: ##  Attach to console ## (Ctrl+P+Q to detach!) 
 	@echo "📌 Attaching to console..."
 	@echo "⚠️  REMEMBER: Use [Ctrl+P] then [Ctrl+Q] to detach safely."
 	@echo "   (Ctrl+C will KILL the server!)"
 	@echo ""
-	@docker attach fabricserver
+	@docker attach $(CONTAINER_NAME)
 
 .PHONY: clean
-clean: ## � Remove everything ## (WARNING: DELETES DATA!)
-	@echo "⚠️  WARNING: This will delete the 'minecraft_data' folder!"
+clean: ##  Remove everything ## (WARNING: DELETES DATA!)
+	@echo "⚠️  WARNING: This will delete the 'neoforge_data' folder!"
 	@read -p "Are you sure? [y/N] " ans && [ $${ans:-N} = y ]
 	@docker-compose down -v --remove-orphans
-	@rm -rf minecraft_data
+	@rm -rf neoforge_data
 	@echo "🧹 Cleaned."

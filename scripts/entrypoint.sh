@@ -26,7 +26,14 @@ else
 fi
 
 # 2. Handle User
-if id -u "$USER_ID" >/dev/null 2>&1; then
+if id "$DOCKER_USER" >/dev/null 2>&1; then
+    log "User $DOCKER_USER exists. Reusing..."
+    EXISTING_UID=$(id -u "$DOCKER_USER")
+    if [ "$EXISTING_UID" != "$USER_ID" ]; then
+        log "WARNING: User $DOCKER_USER has UID $EXISTING_UID, but requested $USER_ID. Using existing UID."
+        USER_ID=$EXISTING_UID
+    fi
+elif id -u "$USER_ID" >/dev/null 2>&1; then
     log "UID $USER_ID exists. Reusing..."
     DOCKER_USER=$(getent passwd "$USER_ID" | cut -d: -f1)
 else
@@ -57,7 +64,12 @@ if [ ! -L "/data/libraries" ]; then
 fi
 
 # --- EULA Handling ---
-if [ ! -f "eula.txt" ]; then
+if [ -f "eula.txt" ]; then
+    if grep -q "eula=false" "eula.txt"; then
+        log "eula.txt found with false. Setting to true..."
+        sed -i 's/eula=false/eula=true/g' eula.txt
+    fi
+else
     log "Generating eula.txt..."
     echo "eula=true" > eula.txt
 fi
