@@ -76,7 +76,6 @@ attach: ##  Attach to console ## (Ctrl+P+Q to detach!)
 	@echo "📌 Attaching to console..."
 	@echo "⚠️  REMEMBER: Use [Ctrl+P] then [Ctrl+Q] to detach safely."
 	@echo "   (Ctrl+C will KILL the server!)"
-	@echo ""
 	@$(DOCKER) attach $(CONTAINER_NAME)
 
 .PHONY: clean

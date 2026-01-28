@@ -23,7 +23,8 @@ LABEL maintainer="Sebas Álvaro <https://alvaros.dev>"
 WORKDIR /data
 
 # Install su-exec (lightweight gosu alternative for Alpine)
-RUN apk add --no-cache su-exec rcon && \
+# Install eudev to fix "Did not find udev library" warning (OSHI/Java hardware checks)
+RUN apk add --no-cache su-exec rcon eudev && \
     ln -s /sbin/su-exec /usr/bin/gosu
 
 COPY --from=build /opt/minecraft /opt/minecraft
@@ -40,10 +41,6 @@ ENV JAVAFLAGS=""
 
 COPY scripts/entrypoint.sh /opt/minecraft
 RUN chmod +x /opt/minecraft/entrypoint.sh
-
-# Healthcheck using rcon (requires RCON enabled in server.properties)
-HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
-    CMD rcon --minecraft --host localhost --port 25575 --password minecraft list || exit 1
 
 
 ENTRYPOINT ["/opt/minecraft/entrypoint.sh"]
