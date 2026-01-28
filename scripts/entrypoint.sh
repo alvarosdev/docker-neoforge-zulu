@@ -42,10 +42,9 @@ else
 fi
 
 # 3. Permissions
-# We skip recursive chown to avoid slow startups.
-# The user is responsible for volume permissions, or Docker handles it.
-# We ensure the process runs as the requested UID:GID below using gosu.
-log "Permissions: Assuming /data is owned by $USER_ID:$GROUP_ID"
+# We explicitly set ownership of /data to ensure the user can write (logs, mods, etc.)
+log "Permissions: Updating ownership of /data to $DOCKER_USER:$DOCKER_GROUP ($USER_ID:$GROUP_ID)..."
+chown -R "$DOCKER_USER:$DOCKER_GROUP" /data
 
 # Set HOME to /data to ensure config persistence (.minecraft folder etc)
 export HOME=/data
